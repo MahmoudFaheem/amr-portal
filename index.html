@@ -1,0 +1,424 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B-LAC Portal | AMR Gene &amp; Variant Registry</title>
+    <!-- Bootstrap 5 CSS & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --bs-primary: #0d6efd;
+            --surface-bg: #ffffff;
+            --app-bg: #f8f9fa;
+        }
+        body {
+            background-color: var(--app-bg);
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            color: #212529;
+        }
+        .stat-card {
+            border-radius: 0.75rem;
+            border: 1px solid rgba(0,0,0,0.06);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.08) !important;
+        }
+        .table-surface {
+            background: var(--surface-bg);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+        .badge-soft-primary { background-color: #e7f1ff; color: #0d6efd; }
+        .badge-soft-secondary { background-color: #f1f3f5; color: #495057; }
+        .fasta-block {
+            background-color: #1e1e24;
+            color: #76e0a3;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.85rem;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            max-height: 250px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="#">
+            <i class="bi bi-shield-shaded text-primary"></i> B-LAC Registry
+        </a>
+        <div class="navbar-nav ms-auto flex-row gap-3">
+            <a class="nav-link text-white small" href="#analyticsSection">Analytics</a>
+            <a class="nav-link text-white small" href="#explorerSection">Variant Explorer</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0">AMR Gene Variants Database</h4>
+            <p class="text-muted small mb-0">Curated &beta;-lactamase sequence variants, amino acid substitutions, and resistance phenotypes.</p>
+        </div>
+        <div class="d-flex gap-2 mt-2 mt-md-0">
+            <span class="badge bg-light text-dark border d-flex align-items-center px-3 py-2">
+                <i class="bi bi-people me-2 text-primary"></i> B-LAC Attack Team
+            </span>
+        </div>
+    </div>
+
+    <!-- 3-Card Summary Grid -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4 col-sm-6">
+            <div class="card stat-card shadow-sm border-0 p-3 h-100">
+                <span class="text-muted small fw-semibold">Total Curated Variants</span>
+                <h3 class="fw-bold text-dark my-1" id="statTotal">--</h3>
+                <span class="small text-muted">Documented AMR Alleles</span>
+            </div>
+        </div>
+        <div class="col-md-4 col-sm-6">
+            <div class="card stat-card shadow-sm border-0 p-3 h-100">
+                <span class="text-muted small fw-semibold">Primary Target Genera</span>
+                <h3 class="fw-bold text-dark my-1" id="statGenera">--</h3>
+                <span class="small text-muted"><i class="fst-italic">Klebsiella, Acinetobacter, Escherichia</i></span>
+            </div>
+        </div>
+        <div class="col-md-4 col-sm-12">
+            <div class="card stat-card shadow-sm border-0 p-3 h-100">
+                <span class="text-muted small fw-semibold">Phenotypic Resistance Scope</span>
+                <h3 class="fw-bold text-dark my-1">&beta;-Lactams</h3>
+                <span class="small text-muted">Penicillins, Cephalosporins, Carbapenems</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistical Visualizations Row -->
+    <div class="row g-3 mb-4" id="analyticsSection">
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 p-3 h-100">
+                <div class="mb-3">
+                    <h6 class="fw-bold text-dark mb-0">Host Genus Breakdown</h6>
+                </div>
+                <div style="position: relative; height: 260px;">
+                    <canvas id="genusChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-dark mb-0">Prominent &beta;-Lactamase Families</h6>
+                    <span class="badge badge-soft-secondary rounded-pill">Variant Frequency</span>
+                </div>
+                <div style="position: relative; height: 260px;">
+                    <canvas id="familyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Variant Explorer Table Surface -->
+    <div class="table-surface mt-5 pt-3" id="explorerSection">
+        <div class="d-flex flex-wrap justify-content-between align-items-center pb-3 mb-3 border-bottom gap-2">
+            <div>
+                <h5 class="fw-bold text-dark mb-1 fs-5">Variant Explorer</h5>
+                <span class="text-muted small">Searchable mutation catalog, MIC profiles, and sequence access</span>
+            </div>
+            <div class="d-flex gap-2">
+                <select id="genusFilter" class="form-select form-select-sm" style="min-width: 170px;">
+                    <option value="">All Genera</option>
+                </select>
+                <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search symbol, ID, mutation..." style="min-width: 220px;">
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table align-middle table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Code</th>
+                        <th>Variant Symbol</th>
+                        <th>Host Organism</th>
+                        <th>Protein ID</th>
+                        <th>Substitution(s)</th>
+                        <th>Resistance Profile</th>
+                        <th>Reference</th>
+                        <th class="text-end">Sequence</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">Loading curated dataset...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+            <span class="small text-muted" id="recordInfo">Showing 0 of 0 records</span>
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-outline-secondary" id="btnPrev">&larr; Previous</button>
+                <button class="btn btn-outline-secondary" id="btnNext">Next &rarr;</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FASTA Sequence Modal -->
+<div class="modal fade" id="seqModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="modalTitle">FASTA Sequence Viewer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-semibold text-dark small">Nucleotide Gene Sequence (CDS)</span>
+                    <button class="btn btn-xs btn-outline-primary copy-btn" data-target="geneFastaText">
+                        <i class="bi bi-clipboard me-1"></i> Copy
+                    </button>
+                </div>
+                <div class="fasta-block mb-3" id="geneFastaText">No sequence available.</div>
+
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-semibold text-dark small">Translated Protein Sequence</span>
+                    <button class="btn btn-xs btn-outline-primary copy-btn" data-target="protFastaText">
+                        <i class="bi bi-clipboard me-1"></i> Copy
+                    </button>
+                </div>
+                <div class="fasta-block" id="protFastaText">No sequence available.</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js & Bootstrap Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+let allData = [];
+let filteredData = [];
+let currentPage = 1;
+const pageSize = 15;
+const modalInstance = new bootstrap.Modal(document.getElementById('seqModal'));
+
+fetch('data.json')
+    .then(r => r.json())
+    .then(data => {
+        allData = data;
+        filteredData = data;
+        initDashboard();
+        renderTable();
+    })
+    .catch(err => {
+        document.getElementById('tableBody').innerHTML = 
+            `<tr><td colspan="8" class="text-danger text-center py-4">Error loading data.json: ${err.message}</td></tr>`;
+    });
+
+function initDashboard() {
+    document.getElementById('statTotal').innerText = allData.length.toLocaleString();
+    
+    const genusSet = new Set(allData.map(d => d.genus).filter(Boolean));
+    document.getElementById('statGenera').innerText = genusSet.size + ' Genera';
+
+    const filterSelect = document.getElementById('genusFilter');
+    Array.from(genusSet).sort().forEach(g => {
+        const opt = document.createElement('option');
+        opt.value = g;
+        opt.innerText = g;
+        filterSelect.appendChild(opt);
+    });
+
+    const genusCounts = {};
+    allData.forEach(d => {
+        const g = d.genus || 'Unclassified';
+        genusCounts[g] = (genusCounts[g] || 0) + 1;
+    });
+
+    const sortedGenera = Object.entries(genusCounts)
+        .sort((a,b) => b[1] - a[1])
+        .slice(0, 5);
+
+    const ctxGenus = document.getElementById('genusChart').getContext('2d');
+    new Chart(ctxGenus, {
+        type: 'doughnut',
+        data: {
+            labels: sortedGenera.map(d => d[0]),
+            datasets: [{
+                data: sortedGenera.map(d => d[1]),
+                backgroundColor: ['#0d6efd', '#20c997', '#ffc107', '#fd7e14', '#6f42c1'],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 12,
+                        font: { size: 11, style: 'italic' }
+                    }
+                }
+            }
+        }
+    });
+
+    const familyCounts = {};
+    allData.forEach(d => {
+        const sym = d.name.toUpperCase();
+        let fam = 'Other';
+        if (sym.includes('SHV')) fam = 'SHV';
+        else if (sym.includes('TEM')) fam = 'TEM';
+        else if (sym.includes('CTX')) fam = 'CTX-M';
+        else if (sym.includes('OXA')) fam = 'OXA';
+        else if (sym.includes('NDM')) fam = 'NDM';
+        else if (sym.includes('KPC')) fam = 'KPC';
+        else if (sym.includes('VIM')) fam = 'VIM';
+        else if (sym.includes('IMP')) fam = 'IMP';
+        familyCounts[fam] = (familyCounts[fam] || 0) + 1;
+    });
+
+    const sortedFamilies = Object.entries(familyCounts).sort((a,b) => b[1] - a[1]);
+
+    const ctxFam = document.getElementById('familyChart').getContext('2d');
+    new Chart(ctxFam, {
+        type: 'bar',
+        data: {
+            labels: sortedFamilies.map(d => d[0]),
+            datasets: [{
+                label: 'Variants',
+                data: sortedFamilies.map(d => d[1]),
+                backgroundColor: 'rgba(13, 110, 253, 0.75)',
+                hoverBackgroundColor: '#0d6efd',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#f1f3f5' } },
+                x: { grid: { display: false } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    const start = (currentPage - 1) * pageSize;
+    const pageRows = filteredData.slice(start, start + pageSize);
+
+    if (pageRows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">No variants match your search.</td></tr>`;
+        document.getElementById('recordInfo').innerText = 'Showing 0 of 0 records';
+        return;
+    }
+
+    tbody.innerHTML = pageRows.map((r, idx) => {
+        const globalIdx = start + idx;
+        const mutation = r.var_aa ? `${r.wt_aa || ''}${r.pos || ''}${r.var_aa}` : '<span class="text-muted">Wild-type</span>';
+        const pmidLink = r.pmid ? `<a href="https://pubmed.ncbi.nlm.nih.gov/${r.pmid}/" target="_blank" class="text-decoration-none">${r.pmid} <i class="bi bi-box-arrow-up-right small"></i></a>` : '-';
+        
+        return `
+            <tr>
+                <td><span class="badge badge-soft-secondary rounded-pill font-monospace">${r.id}</span></td>
+                <td><strong class="text-dark">${r.name}</strong></td>
+                <td><span class="fst-italic text-dark small">${r.genus} ${r.species}</span> ${r.strain ? `<span class="badge text-bg-light small">${r.strain}</span>` : ''}</td>
+                <td><span class="font-monospace small">${r.pid || '-'}</span></td>
+                <td><span class="badge badge-soft-primary">${mutation}</span></td>
+                <td><span class="small text-truncate d-inline-block" style="max-width: 200px;" title="${r.res}">${r.res || '-'}</span></td>
+                <td>${pmidLink}</td>
+                <td class="text-end">
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="openSeqModal(${globalIdx})">
+                        FASTA
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    document.getElementById('recordInfo').innerText = 
+        `Showing ${start + 1} to ${Math.min(start + pageSize, filteredData.length)} of ${filteredData.length.toLocaleString()} records`;
+
+    document.getElementById('btnPrev').disabled = currentPage === 1;
+    document.getElementById('btnNext').disabled = start + pageSize >= filteredData.length;
+}
+
+function openSeqModal(idx) {
+    const rec = filteredData[idx];
+    document.getElementById('modalTitle').innerText = `${rec.name} (${rec.id}) - Sequence Records`;
+    document.getElementById('geneFastaText').innerText = rec.gene_seq || '>No nucleotide gene sequence deposited';
+    document.getElementById('protFastaText').innerText = rec.prot_seq || '>No protein sequence deposited';
+    modalInstance.show();
+}
+
+document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const targetId = this.getAttribute('data-target');
+        const text = document.getElementById(targetId).innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            const original = this.innerHTML;
+            this.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+            setTimeout(() => this.innerHTML = original, 1800);
+        });
+    });
+});
+
+document.getElementById('searchInput').addEventListener('input', applyFilters);
+document.getElementById('genusFilter').addEventListener('change', applyFilters);
+
+function applyFilters() {
+    const q = document.getElementById('searchInput').value.toLowerCase().trim();
+    const g = document.getElementById('genusFilter').value;
+
+    filteredData = allData.filter(d => {
+        const matchGenus = !g || d.genus === g;
+        const matchQuery = !q || 
+            d.name.toLowerCase().includes(q) ||
+            d.id.toLowerCase().includes(q) ||
+            d.pid.toLowerCase().includes(q) ||
+            (d.var_aa && d.var_aa.toLowerCase().includes(q)) ||
+            (d.res && d.res.toLowerCase().includes(q));
+        return matchGenus && matchQuery;
+    });
+
+    currentPage = 1;
+    renderTable();
+}
+
+document.getElementById('btnPrev').addEventListener('click', () => {
+    if (currentPage > 1) {
+        currentPage--;
+        renderTable();
+    }
+});
+document.getElementById('btnNext').addEventListener('click', () => {
+    if ((currentPage * pageSize) < filteredData.length) {
+        currentPage++;
+        renderTable();
+    }
+});
+</script>
+</body>
+</html>
