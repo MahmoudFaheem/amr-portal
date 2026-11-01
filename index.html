@@ -324,6 +324,26 @@ function initDashboard() {
     });
 }
 
+function formatSubstitution(r) {
+    if (!r.var_aa) return '<span class="text-muted">Wild-type</span>';
+
+    const wtList = (r.wt_aa || '').split(',').map(s => s.trim()).filter(Boolean);
+    const varList = (r.var_aa || '').split(',').map(s => s.trim()).filter(Boolean);
+    const posList = (r.pos || '').split(',').map(s => s.trim()).filter(Boolean);
+
+    if (wtList.length > 0 && wtList.length === varList.length) {
+        return wtList.map((wt, i) => {
+            const vr = varList[i];
+            const numMatch = wt.match(/\d+/);
+            const posNum = numMatch ? numMatch[0] : (posList[i] || '');
+            const wtChar = wt.replace(/\d+/g, '').trim();
+            const varChar = vr.replace(/\d+/g, '').trim();
+            return posNum ? `${wtChar}${posNum}${varChar}` : `${wt} &rarr; ${vr}`;
+        }).join(', ');
+    }
+    return r.var_aa;
+}
+
 function renderTable() {
     const tbody = document.getElementById('tableBody');
     const start = (currentPage - 1) * pageSize;
@@ -337,25 +357,7 @@ function renderTable() {
 
     tbody.innerHTML = pageRows.map((r, idx) => {
         const globalIdx = start + idx;
-        let mutation = '<span class="text-muted">Wild-type</span>';
-        if (r.var_aa) {
-            const wtList = (r.wt_aa || '').split(',').map(s => s.trim()).filter(Boolean);
-            const varList = (r.var_aa || '').split(',').map(s => s.trim()).filter(Boolean);
-            const posList = (r.pos || '').split(',').map(s => s.trim()).filter(Boolean);
-
-            if (wtList.length > 0 && wtList.length === varList.length) {
-                mutation = wtList.map((wt, i) => {
-                    const vr = varList[i];
-                    const numMatch = wt.match(/\d+/);
-                    const posNum = numMatch ? numMatch[0] : (posList[i] || '');
-                    const wtChar = wt.replace(/\d+/g, '').trim();
-                    const varChar = vr.replace(/\d+/g, '').trim();
-                    return posNum ? `${wtChar}${posNum}${varChar}` : `${wt} &rarr; ${vr}`;
-                }).join(', ');
-            } else {
-                mutation = r.var_aa;
-            }
-        }
+        const mutation = formatSubstitution(r);
         const pmidLink = r.pmid ? `<a href="https://pubmed.ncbi.nlm.nih.gov/${r.pmid}/" target="_blank" class="text-decoration-none">${r.pmid} <i class="bi bi-box-arrow-up-right small"></i></a>` : '-';
         
         return `
