@@ -56,6 +56,8 @@
             max-width: 200px;
         }
         .res-scroll-box {
+            color: #000000 !important;
+            font-weight: 500;
             max-width: 190px;
             overflow-x: auto;
             white-space: nowrap;
@@ -693,7 +695,7 @@ function renderTable() {
                 <td class="subst-cell">${mutation}</td>
                 <td>${complexityBadge}</td>
                 <td class="res-scroll-cell">
-                    <div class="res-scroll-box small text-secondary" title="${r.res || ''-''}">
+                    <div class="res-scroll-box small text-dark" title="${r.res || ''-''}">
                         ${r.res || '-'}
                     </div>
                 </td>
