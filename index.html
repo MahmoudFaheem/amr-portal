@@ -39,6 +39,24 @@
         .badge-soft-danger { background-color: #ffebe9; color: #cf222e; }
         .badge-soft-warning { background-color: #fff8e6; color: #9a6700; }
         .badge-soft-info { background-color: #e8f5fc; color: #0969da; }
+        .subst-cell {
+            min-width: 160px;
+            max-width: 240px;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }
+        .subst-wrap {
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            align-items: center;
+        }
+        .subst-badge {
+            padding: 0.25rem 0.6rem !important;
+            font-size: 0.78rem;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+        }
         .fasta-block {
             background-color: #1e1e24;
             color: #76e0a3;
@@ -264,7 +282,7 @@
                         <th>Variant Symbol</th>
                         <th>Host Organism</th>
                         <th>Protein ID</th>
-                        <th>Substitution(s)</th>
+                        <th class="subst-cell">Substitution(s)</th>
                         <th>Complexity</th>
                         <th>Resistance Profile</th>
                         <th>Reference</th>
@@ -590,23 +608,28 @@ function initDashboard() {
 }
 
 function formatSubstitution(r) {
-    if (!r.var_aa) return '<span class="text-muted">Wild-type</span>';
+    if (!r.var_aa) return '<span class="text-muted small">Wild-type</span>';
 
     const wtList = (r.wt_aa || '').split(',').map(s => s.trim()).filter(Boolean);
     const varList = (r.var_aa || '').split(',').map(s => s.trim()).filter(Boolean);
     const posList = (r.pos || '').split(',').map(s => s.trim()).filter(Boolean);
 
     if (wtList.length > 0 && wtList.length === varList.length) {
-        return wtList.map((wt, i) => {
+        const badges = wtList.map((wt, i) => {
             const vr = varList[i];
             const numMatch = wt.match(/\d+/);
             const posNum = numMatch ? numMatch[0] : (posList[i] || '');
             const wtChar = wt.replace(/\d+/g, '').trim();
             const varChar = vr.replace(/\d+/g, '').trim();
-            return posNum ? `${wtChar}${posNum}${varChar}` : `${wt} &rarr; ${vr}`;
-        }).join(', ');
+            const label = posNum ? `${wtChar}${posNum}${varChar}` : `${wt}&rarr;${vr}`;
+            return `<span class="badge badge-soft-primary subst-badge">${label}</span>`;
+        });
+        return `<div class="subst-wrap">${badges.join('')}</div>`;
     }
-    return r.var_aa;
+    
+    // Fallback if wt_aa list length mismatch
+    const fallbackBadges = r.var_aa.split(',').map(s => `<span class="badge badge-soft-primary subst-badge">${s.trim()}</span>`);
+    return `<div class="subst-wrap">${fallbackBadges.join('')}</div>`;
 }
 
 function getComplexityBadge(r) {
@@ -642,7 +665,7 @@ function renderTable() {
                 <td><strong class="text-dark">${r.name}</strong></td>
                 <td><span class="fst-italic text-dark small">${r.genus} ${r.species}</span> ${r.strain ? `<span class="badge text-bg-light small">${r.strain}</span>` : ''}</td>
                 <td><span class="font-monospace small">${r.pid || '-'}</span></td>
-                <td><span class="badge badge-soft-primary">${mutation}</span></td>
+                <td class="subst-cell">${mutation}</td>
                 <td>${complexityBadge}</td>
                 <td><span class="small text-truncate d-inline-block" style="max-width: 170px;" title="${r.res}">${r.res || '-'}</span></td>
                 <td>${pmidLink}</td>
