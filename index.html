@@ -35,6 +35,7 @@
         }
         .badge-soft-primary { background-color: #e7f1ff; color: #0d6efd; }
         .badge-soft-secondary { background-color: #f1f3f5; color: #495057; }
+        .badge-soft-danger { background-color: #ffebe9; color: #cf222e; }
         .fasta-block {
             background-color: #1e1e24;
             color: #76e0a3;
@@ -46,6 +47,13 @@
             overflow-y: auto;
             white-space: pre-wrap;
             word-break: break-all;
+        }
+        .hotspot-chip {
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .hotspot-chip:hover {
+            transform: scale(1.05);
         }
     </style>
 </head>
@@ -77,34 +85,41 @@
         </div>
     </div>
 
-    <!-- 3-Card Summary Grid -->
+    <!-- 4-Card Summary Grid with Unique Metrics -->
     <div class="row g-3 mb-4">
-        <div class="col-md-4 col-sm-6">
+        <div class="col-lg-3 col-sm-6">
             <div class="card stat-card shadow-sm border-0 p-3 h-100">
                 <span class="text-muted small fw-semibold">Total Curated Variants</span>
                 <h3 class="fw-bold text-dark my-1" id="statTotal">--</h3>
                 <span class="small text-muted">Documented AMR Alleles</span>
             </div>
         </div>
-        <div class="col-md-4 col-sm-6">
+        <div class="col-lg-3 col-sm-6">
             <div class="card stat-card shadow-sm border-0 p-3 h-100">
                 <span class="text-muted small fw-semibold">Primary Target Genera</span>
                 <h3 class="fw-bold text-dark my-1" id="statGenera">--</h3>
                 <span class="small text-muted"><i class="fst-italic">Klebsiella, Acinetobacter, Escherichia</i></span>
             </div>
         </div>
-        <div class="col-md-4 col-sm-12">
+        <div class="col-lg-3 col-sm-6">
             <div class="card stat-card shadow-sm border-0 p-3 h-100">
-                <span class="text-muted small fw-semibold">Phenotypic Resistance Scope</span>
-                <h3 class="fw-bold text-dark my-1">&beta;-Lactams</h3>
-                <span class="small text-muted">Penicillins, Cephalosporins, Carbapenems</span>
+                <span class="text-muted small fw-semibold">Carbapenem-Active Alleles</span>
+                <h3 class="fw-bold text-danger my-1" id="statCarba">--</h3>
+                <span class="small text-muted">Carbapenemase Spectrum</span>
+            </div>
+        </div>
+        <div class="col-lg-3 col-sm-6">
+            <div class="card stat-card shadow-sm border-0 p-3 h-100">
+                <span class="text-muted small fw-semibold">Top Mutational Hotspot</span>
+                <h3 class="fw-bold text-primary my-1">Pos 35 &amp; 238</h3>
+                <span class="small text-muted">Active site &amp; ESBL drivers</span>
             </div>
         </div>
     </div>
 
     <!-- Statistical Visualizations Row -->
     <div class="row g-3 mb-4" id="analyticsSection">
-        <div class="col-lg-5">
+        <div class="col-lg-4">
             <div class="card shadow-sm border-0 p-3 h-100">
                 <div class="mb-3">
                     <h6 class="fw-bold text-dark mb-0">Host Genus Breakdown</h6>
@@ -114,7 +129,18 @@
                 </div>
             </div>
         </div>
-        <div class="col-lg-7">
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-dark mb-0">Codon Mutation Hotspots</h6>
+                    <span class="badge badge-soft-danger rounded-pill">Top Substituted Residues</span>
+                </div>
+                <div style="position: relative; height: 260px;">
+                    <canvas id="hotspotChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
             <div class="card shadow-sm border-0 p-3 h-100">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="fw-bold text-dark mb-0">Prominent &beta;-Lactamase Families</h6>
@@ -127,8 +153,21 @@
         </div>
     </div>
 
+    <!-- Quick Filter Hotspot Chips -->
+    <div class="card shadow-sm border-0 p-3 mb-4">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <span class="small fw-bold text-dark me-2"><i class="bi bi-funnel-fill text-primary"></i> Quick Filter Hotspot:</span>
+            <span class="badge bg-light text-dark border hotspot-chip px-3 py-2" onclick="quickFilter('')">All</span>
+            <span class="badge badge-soft-primary hotspot-chip px-3 py-2" onclick="quickFilter('238')">Position 238 (ESBL Gateway)</span>
+            <span class="badge badge-soft-primary hotspot-chip px-3 py-2" onclick="quickFilter('240')">Position 240 (CAZ Resistance)</span>
+            <span class="badge badge-soft-primary hotspot-chip px-3 py-2" onclick="quickFilter('35')">Position 35 (SHV Hotspot)</span>
+            <span class="badge badge-soft-primary hotspot-chip px-3 py-2" onclick="quickFilter('164')">Position 164 (Omega-Loop)</span>
+            <span class="badge badge-soft-danger hotspot-chip px-3 py-2 ms-auto" onclick="quickFilter('carbapenem')"><i class="bi bi-shield-x me-1"></i> Carbapenems</span>
+        </div>
+    </div>
+
     <!-- Variant Explorer Table Surface -->
-    <div class="table-surface mt-5 pt-3" id="explorerSection">
+    <div class="table-surface mt-3" id="explorerSection">
         <div class="d-flex flex-wrap justify-content-between align-items-center pb-3 mb-3 border-bottom gap-2">
             <div>
                 <h5 class="fw-bold text-dark mb-1 fs-5">Variant Explorer</h5>
@@ -138,7 +177,7 @@
                 <select id="genusFilter" class="form-select form-select-sm" style="min-width: 170px;">
                     <option value="">All Genera</option>
                 </select>
-                <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search symbol, ID, mutation..." style="min-width: 220px;">
+                <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search symbol, ID, mutation, codon..." style="min-width: 240px;">
             </div>
         </div>
 
@@ -237,6 +276,12 @@ function initDashboard() {
     const genusSet = new Set(allData.map(d => d.genus).filter(Boolean));
     document.getElementById('statGenera').innerText = genusSet.size + ' Genera';
 
+    const carbaCount = allData.filter(d => {
+        const r = (d.res || '').toLowerCase();
+        return r.includes('carbapenem') || r.includes('imipenem') || r.includes('meropenem') || r.includes('ertapenem');
+    }).length;
+    document.getElementById('statCarba').innerText = carbaCount + ' Alleles';
+
     const filterSelect = document.getElementById('genusFilter');
     Array.from(genusSet).sort().forEach(g => {
         const opt = document.createElement('option');
@@ -245,6 +290,7 @@ function initDashboard() {
         filterSelect.appendChild(opt);
     });
 
+    // 1. Host Genus Doughnut Chart
     const genusCounts = {};
     allData.forEach(d => {
         const g = d.genus || 'Unclassified';
@@ -255,8 +301,7 @@ function initDashboard() {
         .sort((a,b) => b[1] - a[1])
         .slice(0, 5);
 
-    const ctxGenus = document.getElementById('genusChart').getContext('2d');
-    new Chart(ctxGenus, {
+    new Chart(document.getElementById('genusChart').getContext('2d'), {
         type: 'doughnut',
         data: {
             labels: sortedGenera.map(d => d[0]),
@@ -273,15 +318,60 @@ function initDashboard() {
             plugins: {
                 legend: {
                     position: 'bottom',
-                    labels: {
-                        boxWidth: 12,
-                        font: { size: 11, style: 'italic' }
-                    }
+                    labels: { boxWidth: 12, font: { size: 11, style: 'italic' } }
                 }
             }
         }
     });
 
+    // 2. Codon Mutation Hotspots Bar Chart (UNIQUE METRIC)
+    const posCounts = {};
+    allData.forEach(d => {
+        if (d.pos) {
+            const matches = d.pos.match(/\d+/g);
+            if (matches) {
+                matches.forEach(p => {
+                    posCounts[p] = (posCounts[p] || 0) + 1;
+                });
+            }
+        }
+    });
+
+    const sortedHotspots = Object.entries(posCounts)
+        .sort((a,b) => b[1] - a[1])
+        .slice(0, 6);
+
+    const hotspotChart = new Chart(document.getElementById('hotspotChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: sortedHotspots.map(d => 'Pos ' + d[0]),
+            datasets: [{
+                label: 'Occurrences',
+                data: sortedHotspots.map(d => d[1]),
+                backgroundColor: 'rgba(220, 53, 69, 0.75)',
+                hoverBackgroundColor: '#dc3545',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#f1f3f5' } },
+                x: { grid: { display: false } }
+            },
+            plugins: { legend: { display: false } },
+            onClick: (e, elements) => {
+                if (elements.length > 0) {
+                    const idx = elements[0].index;
+                    const posNum = sortedHotspots[idx][0];
+                    quickFilter(posNum);
+                }
+            }
+        }
+    });
+
+    // 3. Beta-Lactamase Family Bar Chart
     const familyCounts = {};
     allData.forEach(d => {
         const sym = d.name.toUpperCase();
@@ -299,8 +389,7 @@ function initDashboard() {
 
     const sortedFamilies = Object.entries(familyCounts).sort((a,b) => b[1] - a[1]);
 
-    const ctxFam = document.getElementById('familyChart').getContext('2d');
-    new Chart(ctxFam, {
+    new Chart(document.getElementById('familyChart').getContext('2d'), {
         type: 'bar',
         data: {
             labels: sortedFamilies.map(d => d[0]),
@@ -405,6 +494,11 @@ document.querySelectorAll('.copy-btn').forEach(btn => {
     });
 });
 
+function quickFilter(val) {
+    document.getElementById('searchInput').value = val;
+    applyFilters();
+}
+
 document.getElementById('searchInput').addEventListener('input', applyFilters);
 document.getElementById('genusFilter').addEventListener('change', applyFilters);
 
@@ -418,6 +512,7 @@ function applyFilters() {
             d.name.toLowerCase().includes(q) ||
             d.id.toLowerCase().includes(q) ||
             d.pid.toLowerCase().includes(q) ||
+            (d.pos && d.pos.includes(q)) ||
             (d.var_aa && d.var_aa.toLowerCase().includes(q)) ||
             (d.res && d.res.toLowerCase().includes(q));
         return matchGenus && matchQuery;
