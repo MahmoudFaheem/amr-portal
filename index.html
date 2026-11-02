@@ -91,26 +91,6 @@
         }
         .interactive-chip:hover { transform: scale(1.05); }
 
-        /* Carousel Navigation Styling */
-        .carousel-control-prev, .carousel-control-next {
-            width: 40px;
-            height: 40px;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(33, 37, 41, 0.65);
-            border-radius: 50%;
-            opacity: 0.8;
-            margin: 0 10px;
-        }
-        .carousel-control-prev:hover, .carousel-control-next:hover {
-            opacity: 1;
-            background-color: #0d6efd;
-        }
-        .carousel-indicators [data-bs-target] {
-            background-color: #0d6efd;
-            height: 4px;
-            border-radius: 2px;
-        }
         .collapse-toggle-icon {
             transition: transform 0.25s ease;
         }
@@ -184,7 +164,6 @@
     <div class="d-flex justify-content-between align-items-center mb-3 pt-2" id="analyticsSection">
         <div class="d-flex align-items-center gap-2">
             <h5 class="fw-bold text-dark mb-0"><i class="bi bi-graph-up text-primary me-2"></i>Interactive Analytics</h5>
-            <span class="badge badge-soft-primary rounded-pill small">Auto-Cycling Slides</span>
         </div>
         <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 d-flex align-items-center gap-2" type="button" data-bs-toggle="collapse" data-bs-target="#analyticsCollapse" aria-expanded="true" id="collapseBtn">
             <span id="collapseText">Hide Analytics</span>
@@ -192,84 +171,52 @@
         </button>
     </div>
 
-    <!-- Foldable / Collapsible Analytics Carousel Container -->
+    <!-- Foldable / Collapsible Analytics 4-Grid Container -->
     <div class="collapse show" id="analyticsCollapse">
-        <div id="analyticsCarousel" class="carousel slide card shadow-sm border-0 mb-4 p-4" data-bs-ride="carousel" data-bs-interval="6000" data-bs-pause="hover">
-            
-            <!-- Indicators -->
-            <div class="carousel-indicators mb-0" style="bottom: -22px;">
-                <button type="button" data-bs-target="#analyticsCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1: Host Genus &amp; Complexity"></button>
-                <button type="button" data-bs-target="#analyticsCarousel" data-bs-slide-to="1" aria-label="Slide 2: Codon Hotspots &amp; Families"></button>
-            </div>
-
-            <!-- Slides -->
-            <div class="carousel-inner">
-                <!-- Slide 1: Host Genus & Mutation Complexity -->
-                <div class="carousel-item active">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="border rounded-3 p-3 bg-white h-100">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="fw-bold text-dark mb-0">Host Genus Breakdown</h6>
-                                    <span class="badge badge-soft-secondary rounded-pill">Taxonomic Scope</span>
-                                </div>
-                                <div style="position: relative; height: 260px;">
-                                    <canvas id="genusChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="border rounded-3 p-3 bg-white h-100">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="fw-bold text-dark mb-0">Allelic Mutation Complexity</h6>
-                                    <span class="badge badge-soft-primary rounded-pill">Click segment to filter</span>
-                                </div>
-                                <div style="position: relative; height: 260px;">
-                                    <canvas id="complexityChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
+        <div class="row g-3 mb-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="card shadow-sm border-0 p-3 h-100">
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-dark mb-0">Host Genus Breakdown</h6>
                     </div>
-                </div>
-
-                <!-- Slide 2: Codon Hotspots & Families -->
-                <div class="carousel-item">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="border rounded-3 p-3 bg-white h-100">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="fw-bold text-dark mb-0">Codon Mutation Hotspots</h6>
-                                    <span class="badge badge-soft-danger rounded-pill">Click bar to filter</span>
-                                </div>
-                                <div style="position: relative; height: 260px;">
-                                    <canvas id="hotspotChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="border rounded-3 p-3 bg-white h-100">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="fw-bold text-dark mb-0">&beta;-Lactamase Families</h6>
-                                    <span class="badge badge-soft-secondary rounded-pill">Enzyme Classes</span>
-                                </div>
-                                <div style="position: relative; height: 260px;">
-                                    <canvas id="familyChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
+                    <div style="position: relative; height: 250px;">
+                        <canvas id="genusChart"></canvas>
                     </div>
                 </div>
             </div>
-
-            <!-- Carousel Controls -->
-            <button class="carousel-control-prev" type="button" data-bs-target="#analyticsCarousel" data-bs-slide="prev" title="Previous Slide">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Previous</span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#analyticsCarousel" data-bs-slide="next" title="Next Slide">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Next</span>
-            </button>
+            <div class="col-xl-3 col-md-6">
+                <div class="card shadow-sm border-0 p-3 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-dark mb-0">Mutation Complexity</h6>
+                        <span class="badge badge-soft-primary rounded-pill">Substitutions / Allele</span>
+                    </div>
+                    <div style="position: relative; height: 250px;">
+                        <canvas id="complexityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card shadow-sm border-0 p-3 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-dark mb-0">Codon Hotspots</h6>
+                        <span class="badge badge-soft-danger rounded-pill">Most Substituted</span>
+                    </div>
+                    <div style="position: relative; height: 250px;">
+                        <canvas id="hotspotChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6">
+                <div class="card shadow-sm border-0 p-3 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-dark mb-0">&beta;-Lactamase Families</h6>
+                        <span class="badge badge-soft-secondary rounded-pill">Enzyme Classes</span>
+                    </div>
+                    <div style="position: relative; height: 250px;">
+                        <canvas id="familyChart"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -626,12 +573,7 @@ function initDashboard() {
         }
     });
 
-    // Handle Carousel Slide & Collapse Chart Resizing
-    const carouselEl = document.getElementById('analyticsCarousel');
-    carouselEl.addEventListener('slid.bs.carousel', () => {
-        Object.values(chartInstances).forEach(c => c.resize());
-    });
-
+    // Handle Collapse Resizing and Label Text
     const collapseEl = document.getElementById('analyticsCollapse');
     collapseEl.addEventListener('shown.bs.collapse', () => {
         document.getElementById('collapseText').innerText = 'Hide Analytics';
