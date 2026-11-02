@@ -51,6 +51,31 @@
             gap: 4px;
             align-items: center;
         }
+                .res-scroll-cell {
+            min-width: 170px;
+            max-width: 200px;
+        }
+        .res-scroll-box {
+            max-width: 190px;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-bottom: 3px;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+        .res-scroll-box::-webkit-scrollbar {
+            height: 4px;
+        }
+        .res-scroll-box::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .res-scroll-box::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .res-scroll-box::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
         .subst-badge {
             padding: 0.25rem 0.6rem !important;
             font-size: 0.78rem;
@@ -284,7 +309,7 @@
                         <th>Protein ID</th>
                         <th class="subst-cell">Substitution(s)</th>
                         <th>Complexity</th>
-                        <th>Resistance Profile</th>
+                        <th class="res-scroll-cell">Resistance Profile</th>
                         <th>Reference</th>
                         <th class="text-end" style="min-width: 190px;">Sequence &amp; Alignment</th>
                     </tr>
@@ -667,7 +692,11 @@ function renderTable() {
                 <td><span class="font-monospace small">${r.pid || '-'}</span></td>
                 <td class="subst-cell">${mutation}</td>
                 <td>${complexityBadge}</td>
-                <td><span class="small text-truncate d-inline-block" style="max-width: 170px;" title="${r.res}">${r.res || '-'}</span></td>
+                <td class="res-scroll-cell">
+                    <div class="res-scroll-box small text-secondary" title="${r.res || ''-''}">
+                        ${r.res || '-'}
+                    </div>
+                </td>
                 <td>${pmidLink}</td>
                 <td class="text-end">
                     <div class="btn-group btn-group-sm">
