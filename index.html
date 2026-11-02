@@ -242,7 +242,7 @@
         <div class="d-flex flex-wrap justify-content-between align-items-center pb-3 mb-3 border-bottom gap-2">
             <div>
                 <h5 class="fw-bold text-dark mb-1 fs-5">Variant Explorer</h5>
-                <span class="text-muted small">Searchable mutation catalog, complexity scores, and pairwise alignments</span>
+                <span class="text-muted small">Searchable mutation catalog, complexity scores, and sequences</span>
             </div>
             <div class="d-flex gap-2">
                 <select id="genusFilter" class="form-select form-select-sm" style="min-width: 170px;">
@@ -264,7 +264,7 @@
                         <th>Complexity</th>
                         <th>Resistance Profile</th>
                         <th>Reference</th>
-                        <th class="text-end">Sequence &amp; Alignment</th>
+                        <th class="text-end" style="min-width: 180px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
@@ -370,7 +370,6 @@ fetch('data.json')
         allData = data;
         filteredData = data;
         
-        // Build map for fast wild-type sequence lookup by Protein ID
         data.forEach(d => {
             if (d.pid) pidMap[d.pid.trim()] = d;
         });
@@ -600,12 +599,17 @@ function renderTable() {
                 <td><span class="font-monospace small">${r.pid || '-'}</span></td>
                 <td><span class="badge badge-soft-primary">${mutation}</span></td>
                 <td>${complexityBadge}</td>
-                <td><span class="small text-truncate d-inline-block" style="max-width: 180px;" title="${r.res}">${r.res || '-'}</span></td>
+                <td><span class="small text-truncate d-inline-block" style="max-width: 170px;" title="${r.res}">${r.res || '-'}</span></td>
                 <td>${pmidLink}</td>
                 <td class="text-end">
-                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="openSeqModal(${globalIdx})">
-                        <i class="bi bi-bar-chart-steps me-1"></i> Alignment
-                    </button>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-primary" onclick="openModalWithTab(${globalIdx}, 'align')" title="View sequence alignment and highlighted substitutions">
+                            <i class="bi bi-bar-chart-steps me-1"></i> Alignment
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="openModalWithTab(${globalIdx}, 'fasta')" title="View copyable FASTA sequences">
+                            <i class="bi bi-file-earmark-code me-1"></i> FASTA
+                        </button>
+                    </div>
                 </td>
             </tr>
         `;
@@ -618,7 +622,6 @@ function renderTable() {
     document.getElementById('btnNext').disabled = start + pageSize >= filteredData.length;
 }
 
-// Extract pure raw sequence string from FASTA block
 function extractPureSeq(fasta) {
     if (!fasta) return '';
     const lines = fasta.split('\n');
@@ -630,7 +633,6 @@ function extractPureSeq(fasta) {
     return seq.replace(/\s+/g, '');
 }
 
-// Render Pairwise Alignment in 60-residue blocks
 function renderPairwiseAlignment(rec) {
     const alignContainer = document.getElementById('alignmentViewer');
     const summarySpan = document.getElementById('alignSummary');
@@ -642,7 +644,6 @@ function renderPairwiseAlignment(rec) {
         return;
     }
 
-    // Attempt to locate wild-type sequence via wt_pid
     let wtRec = null;
     if (rec.wt_pid && pidMap[rec.wt_pid.trim()]) {
         wtRec = pidMap[rec.wt_pid.trim()];
@@ -650,7 +651,6 @@ function renderPairwiseAlignment(rec) {
 
     const wtProtSeq = wtRec ? extractPureSeq(wtRec.prot_seq) : '';
 
-    // If wild-type sequence isn't found or this record is itself wild-type:
     if (!wtProtSeq || rec.pid === rec.wt_pid || !rec.var_aa) {
         summarySpan.innerHTML = `<strong>${rec.name}</strong> (${rec.pid}) &mdash; <span class="badge bg-secondary">Wild-Type Reference</span> (Length: ${varProtSeq.length} aa)`;
         let html = '';
@@ -664,16 +664,10 @@ function renderPairwiseAlignment(rec) {
         return;
     }
 
-    // Pairwise alignment with wild-type reference
     const maxLen = Math.max(wtProtSeq.length, varProtSeq.length);
     let diffCount = 0;
     const diffPositions = [];
-
-    let wtDisplayHtml = '';
-    let matchDisplayHtml = '';
-    let varDisplayHtml = '';
     let blocksHtml = '';
-
     const blockSize = 60;
 
     for (let b = 0; b < maxLen; b += blockSize) {
@@ -720,20 +714,24 @@ function renderPairwiseAlignment(rec) {
     alignContainer.innerHTML = blocksHtml;
 }
 
-function openSeqModal(idx) {
+// Function handling the two separate button actions
+function openModalWithTab(idx, tabType) {
     const rec = filteredData[idx];
-    document.getElementById('modalTitle').innerText = `${rec.name} (${rec.id}) - Sequence Alignment`;
-    document.getElementById('modalSubtitle').innerText = `Protein ID: ${rec.pid || '-'} | Wild-Type Reference: ${rec.wt_pid || 'None'}`;
+    document.getElementById('modalTitle').innerText = `${rec.name} (${rec.id}) - Sequence Records`;
+    document.getElementById('modalSubtitle').innerText = `Protein ID: ${rec.pid || '-'} | Reference Wild-Type: ${rec.wt_pid || 'None'}`;
     
     document.getElementById('geneFastaText').innerText = rec.gene_seq || '>No nucleotide gene sequence deposited';
     document.getElementById('protFastaText').innerText = rec.prot_seq || '>No protein sequence deposited';
 
-    // Switch back to Alignment tab by default
-    const alignTabTrigger = new bootstrap.Tab(document.getElementById('align-tab'));
-    alignTabTrigger.show();
-
-    // Render client-side alignment
     renderPairwiseAlignment(rec);
+
+    if (tabType === 'fasta') {
+        const fastaTabTrigger = new bootstrap.Tab(document.getElementById('fasta-tab'));
+        fastaTabTrigger.show();
+    } else {
+        const alignTabTrigger = new bootstrap.Tab(document.getElementById('align-tab'));
+        alignTabTrigger.show();
+    }
 
     modalInstance.show();
 }
