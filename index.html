@@ -131,9 +131,10 @@
             <p class="text-muted small mb-0">Curated &beta;-lactamase sequence variants, allelic mutation complexity, pairwise alignments, and resistance phenotypes.</p>
         </div>
         <div class="d-flex gap-2 mt-2 mt-md-0">
-            <span class="badge bg-light text-dark border d-flex align-items-center px-3 py-2">
-                <i class="bi bi-people me-2 text-primary"></i> B-LAC Attack Team
-            </span>
+            <button type="button" class="btn btn-sm btn-light border d-flex align-items-center px-3 py-2 shadow-sm rounded-pill fw-semibold text-dark" data-bs-toggle="modal" data-bs-target="#teamModal" title="Meet the research team">
+                <i class="bi bi-people-fill me-2 text-primary"></i> B-LAC Attack Team
+                <i class="bi bi-arrow-up-right-circle ms-2 text-muted small"></i>
+            </button>
         </div>
     </div>
 
@@ -804,5 +805,29 @@ document.getElementById('btnNext').addEventListener('click', () => {
     }
 });
 </script>
+<!-- Team Photo Modal -->
+<div class="modal fade" id="teamModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow">
+            <div class="modal-header border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-people-fill text-primary fs-5"></i>
+                    <h5 class="modal-title fw-bold mb-0">B-LAC Attack Team</h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <div class="rounded-3 overflow-hidden shadow-sm border mb-3">
+                    <img src="team.jpg" alt="B-LAC Attack Research Team" class="img-fluid w-100" style="max-height: 520px; object-fit: cover;" onerror="this.src='https://placehold.co/800x480/f1f5f9/0f172a?text=Add+team.jpg+to+repository'">
+                </div>
+                <h6 class="fw-bold text-dark mb-1">Microbial Genomics &amp; Resistome Research Group</h6>
+                <p class="text-muted small mb-0">Curating sequence variation, evolutionary trajectories, and antimicrobial resistance determinants in &beta;-lactamase enzymes.</p>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
