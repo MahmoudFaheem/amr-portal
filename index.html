@@ -279,10 +279,15 @@
             </table>
         </div>
 
-        <!-- Pagination Controls -->
-        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
-            <span class="small text-muted" id="recordInfo">Showing 0 of 0 records</span>
-            <div class="btn-group btn-group-sm">
+        <!-- Pagination & View All Controls -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mt-3 pt-3 border-top gap-2">
+            <div class="d-flex align-items-center gap-3">
+                <span class="small text-muted" id="recordInfo">Showing 0 of 0 records</span>
+                <button class="btn btn-xs btn-outline-primary rounded-pill px-3 py-1 small fw-semibold" id="btnToggleAll">
+                    <i class="bi bi-arrows-expand me-1"></i> Show All Results
+                </button>
+            </div>
+            <div class="btn-group btn-group-sm" id="paginationGroup">
                 <button class="btn btn-outline-secondary" id="btnPrev">&larr; Previous</button>
                 <button class="btn btn-outline-secondary" id="btnNext">Next &rarr;</button>
             </div>
@@ -388,7 +393,8 @@ let allData = [];
 let filteredData = [];
 let pidMap = {};
 let currentPage = 1;
-const pageSize = 15;
+const defaultPageSize = 15;
+let isShowingAll = false;
 let currentComplexityFilter = 'all';
 const modalInstance = new bootstrap.Modal(document.getElementById('seqModal'));
 
@@ -573,7 +579,6 @@ function initDashboard() {
         }
     });
 
-    // Handle Collapse Resizing and Label Text
     const collapseEl = document.getElementById('analyticsCollapse');
     collapseEl.addEventListener('shown.bs.collapse', () => {
         document.getElementById('collapseText').innerText = 'Hide Analytics';
@@ -615,7 +620,8 @@ function getComplexityBadge(r) {
 
 function renderTable() {
     const tbody = document.getElementById('tableBody');
-    const start = (currentPage - 1) * pageSize;
+    const pageSize = isShowingAll ? filteredData.length : defaultPageSize;
+    const start = isShowingAll ? 0 : (currentPage - 1) * pageSize;
     const pageRows = filteredData.slice(start, start + pageSize);
 
     if (pageRows.length === 0) {
@@ -654,12 +660,32 @@ function renderTable() {
         `;
     }).join('');
 
+    const displayStart = filteredData.length === 0 ? 0 : start + 1;
+    const displayEnd = isShowingAll ? filteredData.length : Math.min(start + pageSize, filteredData.length);
     document.getElementById('recordInfo').innerText = 
-        `Showing ${start + 1} to ${Math.min(start + pageSize, filteredData.length)} of ${filteredData.length.toLocaleString()} records`;
+        `Showing ${displayStart} to ${displayEnd} of ${filteredData.length.toLocaleString()} records`;
 
-    document.getElementById('btnPrev').disabled = currentPage === 1;
-    document.getElementById('btnNext').disabled = start + pageSize >= filteredData.length;
+    document.getElementById('btnPrev').disabled = isShowingAll || currentPage === 1;
+    document.getElementById('btnNext').disabled = isShowingAll || (start + pageSize >= filteredData.length);
 }
+
+// Toggle between Paginated and Show All Results
+document.getElementById('btnToggleAll').addEventListener('click', function() {
+    isShowingAll = !isShowingAll;
+    currentPage = 1;
+    if (isShowingAll) {
+        this.innerHTML = '<i class="bi bi-arrows-collapse me-1"></i> Paginate (15 / page)';
+        this.classList.remove('btn-outline-primary');
+        this.classList.add('btn-primary');
+        document.getElementById('paginationGroup').style.opacity = '0.4';
+    } else {
+        this.innerHTML = '<i class="bi bi-arrows-expand me-1"></i> Show All Results';
+        this.classList.remove('btn-primary');
+        this.classList.add('btn-outline-primary');
+        document.getElementById('paginationGroup').style.opacity = '1';
+    }
+    renderTable();
+});
 
 function extractPureSeq(fasta) {
     if (!fasta) return '';
@@ -830,13 +856,13 @@ function applyFilters() {
 }
 
 document.getElementById('btnPrev').addEventListener('click', () => {
-    if (currentPage > 1) {
+    if (!isShowingAll && currentPage > 1) {
         currentPage--;
         renderTable();
     }
 });
 document.getElementById('btnNext').addEventListener('click', () => {
-    if ((currentPage * pageSize) < filteredData.length) {
+    if (!isShowingAll && (currentPage * defaultPageSize) < filteredData.length) {
         currentPage++;
         renderTable();
     }
